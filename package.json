@@ -1,0 +1,16 @@
+{
+  "name": "test",
+  "description": "Test Node.js project",
+  "version": "0.0.1",
+  "author": "lonelyghost <neural.null@gmail.com>",
+  "homepage": "http://git.io/vWqhr",
+  "repository": "lghost/test",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "express": "^4.10.6",
+    "mysql": "^2.5.4"
+  }
+}
