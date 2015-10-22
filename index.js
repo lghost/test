@@ -1,25 +1,14 @@
-var express    = require("express");
-var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'test',
-  password : 'qwerty',
-  database : 'test_db'
-});
-var app = express();
+var api     = require('./api');
+var db      = require('./db');
 
-app.get('/', function (req, res) {
-  connection.query('SELECT * from users', function(err, rows, fields) {
-    if (!err) {
-      console.log('You got some data!');
-      res.end(JSON.stringify(rows));
-    } else console.log('Error while performing Query.');
-  });
-});
+var express = require('express');
+var app     = express();
 
-connection.connect(function (err) {
-  if(!err) {
-    console.log("Database is connected. Starting application...");
+app.use(express.static('public')); // Adding middleware that enables static files support
+app.use('/api', api); // Adding api middleware
+db.connect(function (err) { // Connecting to DB
+  if(!err) { // If we can connect, let's start express app
+    console.log('Database is connected. Starting application...');
     app.listen(3000);
-  } else console.log("Error connecting database.");
+  } else console.log('Error connecting database.');
 });
