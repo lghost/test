@@ -1,16 +1,16 @@
 {
   "name": "test",
   "description": "Test Node.js project",
-  "version": "0.0.2",
+  "version": "0.1.1",
   "author": "lonelyghost <neural.null@gmail.com>",
   "homepage": "http://git.io/vWqhr",
   "repository": "lghost/test",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.10.6",
-    "mysql": "^2.5.4"
+    "orm": "^2.1.27"
   }
 }
