@@ -1,5 +1,4 @@
 var express = require('express');
-var orm = require('orm');
 var router  = express.Router();
 
 // Test response for GET '/api/' request
