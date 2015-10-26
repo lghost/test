@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.10.6",
     "mysql": "^2.9.0",
-    "orm": "^2.1.27"
+    "orm": "^2.1.27",
+    "sequelize": "^3.12.2"
   }
 }

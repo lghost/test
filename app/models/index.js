@@ -1,4 +1,6 @@
 module.exports = 
 {
-  test: require('./test')
+  //test: require('./test')
+  employee: require('./employee'),
+  post: require('./post')
 }
