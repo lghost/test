@@ -1,49 +1,37 @@
+var config    = require('./config');
+var models    = require('./app/models/');
 var routes    = require('./app/routes/');
-var db_models = require('./app/models/');
+
 var express   = require('express');
-//var orm       = require('orm');
+var path      = require('path');
 var Sequelize = require('sequelize');
+
 var app       = express();
-var sequelize = new Sequelize('mysql://test:qwerty@localhost/test_db');
+var sequelize = new Sequelize(config.db.database, config.db.username, config.db.password, {
+  host: config.db.host,
+  dialect: config.db.dialect
+});
 
 // Adding middleware that enables static files support
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.bodyParser());
 
-var User = sequelize.define('User', {
-  username: Sequelize.STRING,
-  birthday: Sequelize.DATE
-});
+var db = {};
+
+for (var model in models)
+  db[model] = models[model](sequelize);
 
 sequelize.sync();
 
+// Adding DB ORM middleware
 app.use(function (req, res, next) {
-  req.db = {
-    
-  };
+  req.db = db;
+  next();
 });
-
-// Adding third-party middleware - Node ORM for MySQL DB
-/*if (false) app.use(orm.express('mysql://test:qwerty@localhost/test_db', {
-  // Init function for ORM
-  define: function (db, models, next) {
-    // Adding models
-    for (var model in db_models)
-      models[model] = db_models[model](db);
-
-    models.employee.hasOne("post", models.post);
-
-    // Sync DB
-    db.sync(function (err) {
-      if (err) throw err;
-    });
-
-    next();
-  }
-}));*/
 
 // Adding routes
 for (var route in routes)
   app.use(routes[route].path, routes[route].router);
 
 // Now start app
-app.listen(3000);
+app.listen(config.port);

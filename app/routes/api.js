@@ -11,3 +11,5 @@ router.get('/', function (req, res) {
     res.send(employee ? employee.post : "No Data");
   });
 });
+
+module.exports = router;
