@@ -7,7 +7,36 @@
     <script type='text/javascript' src='/js/lib/knockout-3.3.0.js'></script>
     <script type='text/javascript' src='/js/lib/sammy-0.7.6.min.js'></script>
   </head>
+
   <body>
+    <!-- Navigation menu
+    <ul>
+      <li>Main page</li>
+      <li>Employee list</li>
+      <li>Post list</li>
+    </ul> -->
+
+    <!-- Main page -->
+    <div data-bind="visible: page() == 'main'">
+      <a href="#employees">К списку сотрудников</a>
+    </div>
+
+    <!-- Employees list -->
+    <div data-bind="visible: page() == 'employees'">
+      <a href="#main">На главную</a><br/>
+      <table>
+        <thead><tr><th>ФИО</th><th>Должность</th><th>Возраст</th></tr></thead>
+        <tbody data-bind="foreach: employees">
+          <tr>
+            <td data-bind="text: formattedName"></td>
+            <td data-bind="text: post"></td>
+            <td data-bind="text: age"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script type='text/javascript' src='/js/employee.js'></script>
     <script type='text/javascript' src='/js/viewModel.js'></script>
   </body>
 </html>
