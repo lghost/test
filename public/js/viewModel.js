@@ -1,14 +1,21 @@
 function viewModel() {
-    var self = this;
-    self.title = ko.observable("");
+  // Title
+  var self = this;
+  self.title = ko.observable("");
 
-    Sammy(function() {
-        this.get('#:page', function() {
-            self.title(this.params.page);
-        });
+  Sammy(function() {
+    // Set page title if need
+    this.get('#:hash', function() {
+      var pageTitle = {
+        "main": "Main page"
+      };
 
-        this.get('', function() { this.app.runRoute('get', '#main') });
-    }).run();
+      if (pageTitle[this.params.hash]) self.title(pageTitle[this.params.hash]);
+    });
+
+    // Main page is main page
+    this.get('', function() { this.app.runRoute('get', '#main') });
+  }).run();
 };
 
 ko.applyBindings(new viewModel(), document.getElementById("htmlTop"));
