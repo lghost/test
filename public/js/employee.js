@@ -1,13 +1,14 @@
-function Employee(firstName, lastName, middleName, post, age) {
+function Employee(args) {
   var self = this;
 
-  self.firstName = firstName;
-  self.lastName = lastName;
-  self.middleName = middleName;
-  self.post = post;
-  self.age = age;
+  self.id = args.id;
+  self.firstName = args.firstName || "";
+  self.lastName = args.lastName || "";
+  self.middleName = args.middleName || "";
+  self.post = args.post.value;
+  self.age = args.age;
 
   self.formattedName = ko.computed(function() {
-    return lastName + ' ' + firstName.charAt(0) + '. ' + middleName.charAt(0) + '.';
+    return self.lastName + ' ' + self.firstName.charAt(0) + '. ' + self.middleName.charAt(0) + '.';
   });
 }
