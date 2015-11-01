@@ -7,6 +7,10 @@ ko.applyBindings(new function () {
   self.page = ko.observable();
   // Chosed item id
   self.item = ko.observable();
+  // Update function
+  self.update = ko.observable();
+  // Chosen list view model
+  self.listViewModel = ko.observable();
   // Employee list
   self.employees = ko.observableArray();
   // Post list
@@ -18,11 +22,18 @@ ko.applyBindings(new function () {
         return new Employee(item);
       }));
     });
-  }
+  };
 
   self.getPosts = function() {
     $.getJSON('/api/posts', self.posts);
-  }
+  };
+
+  /*self.add = function () {
+    app.runRoute('get', '#' + self.page() + '/add');
+  };
+  self.remove = function () {
+    app.runRoute('get', '#' + self.page() + '/remove/' + self.item());
+  };*/
 
   self.router = Sammy(function() {
     this.get('#main', function() {
@@ -33,13 +44,57 @@ ko.applyBindings(new function () {
     this.get('#employees', function() {
       self.title('Список сотрудников');
       self.page('employees');
+      self.update(self.getEmployees);
       self.getEmployees();
+
+      self.listViewModel(new ko.simpleGrid.viewModel({
+        data: self.employees,
+        columns: [
+          { headerText: 'ФИО', rowText: 'formattedName' },
+          { headerText: 'Должность', rowText: 'post' },
+          { headerText: 'Возраст', rowText: 'age' }
+        ],
+        pageSize: 10
+      }));
     });
 
     this.get('#posts', function() {
       self.title('Список должностей');
       self.page('posts');
+      self.update(self.getPosts);
       self.getPosts();
+
+      self.listViewModel(new ko.simpleGrid.viewModel({
+        data: self.posts,
+        columns: [
+          { headerText: 'Название', rowText: 'value' }
+        ],
+        pageSize: 10
+      }));
+    });
+
+    this.get('#employees/add', function() {
+
+    });
+
+    this.get('#posts/add', function() {
+
+    });
+
+    this.get('#employees/edit', function() {
+
+    });
+
+    this.get('#posts/edit', function() {
+
+    });
+
+    this.get('#employees/remove', function() {
+
+    });
+
+    this.get('#posts/remove', function() {
+
     });
 
     // Main page is main page
@@ -48,14 +103,4 @@ ko.applyBindings(new function () {
 
   self.router.run();
 
-  self.update = function () {
-    self.router.runRoute('get', '#' + self.page());
-  };
-
-  /*self.add = function () {
-    app.runRoute('get', '#' + self.page() + '/add');
-  };
-  self.remove = function () {
-    app.runRoute('get', '#' + self.page() + '/remove/' + self.item());
-  };*/
 }, document.getElementById('htmlTop')); // For title changing

@@ -6,9 +6,28 @@
     <script type='text/javascript' src='/js/lib/jquery-2.1.4.min.js'></script>
     <script type='text/javascript' src='/js/lib/knockout-3.3.0.js'></script>
     <script type='text/javascript' src='/js/lib/sammy-0.7.6.min.js'></script>
+    <script type='text/javascript' src='/js/lib/knockout.simpleGrid.3.0.js'></script>
+    <link rel="stylesheet" href="/css/ko-grid.css">
+    <link rel="stylesheet" href="/css/button-link.css">
   </head>
 
   <body>
+    <!-- Own simpleGrid template -->
+    <script type="text/html" id="sortableGridTemplate">
+      <table class="ko-grid" cellspacing="0">
+        <thead>
+          <tr data-bind="foreach: columns">
+            <th data-bind="text: headerText"></th>
+          </tr>
+        </thead>
+        <tbody data-bind="foreach: itemsOnCurrentPage">
+          <tr data-bind="foreach: $parent.columns">
+            <td data-bind="text: typeof rowText == 'function' ? rowText($parent) : $parent[rowText] "></td>
+          </tr>
+        </tbody>
+      </table>
+    </script>
+
     <!-- Navigation menu -->
     <ul>
       <li><a href="#main">На главную</a><br/></li>
@@ -23,36 +42,16 @@
 
     <div data-bind="visible: page() == 'employees' || page() == 'posts'">
       <!-- List menu -->
-      <button data-bind="click: update">Обновить</button>
-      <!-- <button data-bind="click: add">Добавить</button>
-      <button data-bind="click: edit">Редактировать</button>
-      <button data-bind="click: remove">Удалить</button> -->
+      <p>
+        <a href="" class="button-link" data-bind="click: update()">Обновить</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/add' }">Добавить</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/edit' }">Редактировать</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/remove' }">Удалить</a>
+      </p>
 
-      <!-- Employee list -->
-      <div data-bind="visible: page() == 'employees'">
-        <table>
-          <thead><tr><th>ФИО</th><th>Должность</th><th>Возраст</th></tr></thead>
-          <tbody data-bind="foreach: employees">
-            <tr>
-              <td data-bind="text: formattedName"></td>
-              <td data-bind="text: post"></td>
-              <td data-bind="text: age"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Post list -->
-      <div data-bind="visible: page() == 'posts'">
-        <table>
-          <thead><tr><th>Название</th></tr></thead>
-          <tbody data-bind="foreach: posts">
-            <tr>
-              <td data-bind="text: value"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Data list -->
+      <div data-bind="simpleGrid: listViewModel,
+                      simpleGridTemplate: 'sortableGridTemplate'"></div>
     </div>
 
     <script type='text/javascript' src='/js/employee.js'></script>
