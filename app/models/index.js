@@ -1,5 +1,5 @@
 module.exports = {
-  //test: require('./test')
-  //employee: require('./employee'),
-  //post: require('./post')
+  employee: require('./employee'),
+  post: require('./post'),
+  _associations: require('./_associations')
 }

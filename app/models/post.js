@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 
 module.exports = function(sequelize) {
-  return db.define('post', {
-    value: String
+  return sequelize.define('post', {
+    value: { type: Sequelize.STRING, allowNull: false }
   });
 }

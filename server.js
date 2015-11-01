@@ -1,4 +1,4 @@
-var config    = require('./config');
+var config    = require('./app/config');
 var models    = require('./app/models/');
 var routes    = require('./app/routes/');
 
@@ -19,11 +19,33 @@ app.use(express.static(path.join(__dirname, 'public')));
 var db = {};
 
 for (var model in models)
-  db[model] = models[model](sequelize);
+  if (model != '_associations')
+    db[model] = models[model](sequelize);
 
-sequelize.sync();
+if (models._associations)
+  models._associations(sequelize, db);
 
-// Adding DB ORM middleware
+sequelize.sync({ force: true }).then(function () {
+  /* Adding test data */
+  db.employee.findOrCreate({ where: { firstName: 'Foo' }, defaults: {
+    lastName: 'Foo',
+    middleName: 'Foo',
+    age: 44,
+    post: {
+      value: 'Murderer'
+    }
+  }, include: [ db.post ] });
+  db.employee.findOrCreate({ where: { firstName: 'Bar' }, defaults: {
+    lastName: 'Bar',
+    middleName: 'Bar',
+    age: 22,
+    post: {
+      value: 'Victim'
+    }
+  }, include: [ db.post ] });
+});
+
+// Adding simpliest DB ORM middleware
 app.use(function (req, res, next) {
   req.db = db;
   next();
@@ -34,4 +56,8 @@ for (var route in routes)
   app.use(routes[route].path, routes[route].router);
 
 // Now start app
-app.listen(config.port);
+app.listen(config.port, config.host);
+
+
+
+
