@@ -9,12 +9,32 @@ ko.applyBindings(new function () {
   self.item = ko.observable();
   // Update function
   self.update = ko.observable();
-  // Chosen list view model
-  self.listViewModel = ko.observable();
   // Employee list
   self.employees = ko.observableArray();
   // Post list
   self.posts = ko.observableArray();
+
+  self.employeeGridModel = new ko.simpleGrid.viewModel({
+    data: self.employees,
+    columns: [
+      { headerText: 'ФИО', rowText: 'formattedName' },
+      { headerText: 'Должность', rowText: 'post' },
+      { headerText: 'Возраст', rowText: 'age' }
+    ],
+    pageSize: 10
+  });
+
+  self.postGridModel = new ko.simpleGrid.viewModel({
+    data: self.posts,
+    columns: [
+      { headerText: 'Название', rowText: 'value' }
+    ],
+    pageSize: 10
+  });
+
+  // List view model depending on chosen view 
+  // (not undefined due to some errors when app initialized)
+  self.listViewModel = ko.observable(self.employeeGridModel);
 
   self.getEmployees = function() {
     $.getJSON('/api/employees', function (data) {
@@ -28,13 +48,6 @@ ko.applyBindings(new function () {
     $.getJSON('/api/posts', self.posts);
   };
 
-  /*self.add = function () {
-    app.runRoute('get', '#' + self.page() + '/add');
-  };
-  self.remove = function () {
-    app.runRoute('get', '#' + self.page() + '/remove/' + self.item());
-  };*/
-
   self.router = Sammy(function() {
     this.get('#main', function() {
       self.title('Главная страница');
@@ -46,16 +59,7 @@ ko.applyBindings(new function () {
       self.page('employees');
       self.update(self.getEmployees);
       self.getEmployees();
-
-      self.listViewModel(new ko.simpleGrid.viewModel({
-        data: self.employees,
-        columns: [
-          { headerText: 'ФИО', rowText: 'formattedName' },
-          { headerText: 'Должность', rowText: 'post' },
-          { headerText: 'Возраст', rowText: 'age' }
-        ],
-        pageSize: 10
-      }));
+      self.listViewModel(self.employeeGridModel);
     });
 
     this.get('#posts', function() {
@@ -63,14 +67,7 @@ ko.applyBindings(new function () {
       self.page('posts');
       self.update(self.getPosts);
       self.getPosts();
-
-      self.listViewModel(new ko.simpleGrid.viewModel({
-        data: self.posts,
-        columns: [
-          { headerText: 'Название', rowText: 'value' }
-        ],
-        pageSize: 10
-      }));
+      self.listViewModel(self.postGridModel);
     });
 
     this.get('#employees/add', function() {

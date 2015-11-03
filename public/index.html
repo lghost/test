@@ -12,22 +12,6 @@
   </head>
 
   <body>
-    <!-- Own simpleGrid template -->
-    <script type="text/html" id="sortableGridTemplate">
-      <table class="ko-grid" cellspacing="0">
-        <thead>
-          <tr data-bind="foreach: columns">
-            <th data-bind="text: headerText"></th>
-          </tr>
-        </thead>
-        <tbody data-bind="foreach: itemsOnCurrentPage">
-          <tr data-bind="foreach: $parent.columns">
-            <td data-bind="text: typeof rowText == 'function' ? rowText($parent) : $parent[rowText] "></td>
-          </tr>
-        </tbody>
-      </table>
-    </script>
-
     <!-- Navigation menu -->
     <ul>
       <li><a href="#main">На главную</a><br/></li>
@@ -44,14 +28,31 @@
       <!-- List menu -->
       <p>
         <a href="" class="button-link" data-bind="click: update()">Обновить</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/add' }">Добавить</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/edit' }">Редактировать</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/remove' }">Удалить</a>
+        <a disabled="disabled" href="" class="button-link" data-bind="attr: { href: '#' + page() + '/add' }">Добавить</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/edit' },
+                                                  disable: !item()">Редактировать</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/remove' },
+                                                  disable: item()">Удалить</a>
       </p>
 
       <!-- Data list -->
       <div data-bind="simpleGrid: listViewModel,
-                      simpleGridTemplate: 'sortableGridTemplate'"></div>
+                      simpleGridTemplate: 'sortable_grid_template'"></div>
+      <!-- Own simpleGrid template -->
+      <script type="text/html" id="sortable_grid_template">
+        <table class="ko-grid" cellspacing="0">
+          <thead>
+            <tr data-bind="foreach: columns">
+              <th data-bind="text: headerText"></th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: itemsOnCurrentPage">
+            <tr data-bind="foreach: $parent.columns">
+              <td data-bind="text: typeof rowText == 'function' ? rowText($parent) : $parent[rowText] "></td>
+            </tr>
+          </tbody>
+        </table>
+      </script>
     </div>
 
     <script type='text/javascript' src='/js/employee.js'></script>
