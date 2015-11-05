@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8">
     <title data-bind="text: title"></title>
-    <script type='text/javascript' src='/js/lib/jquery-2.1.4.min.js'></script>
-    <script type='text/javascript' src='/js/lib/knockout-3.3.0.js'></script>
-    <script type='text/javascript' src='/js/lib/sammy-0.7.6.min.js'></script>
-    <script type='text/javascript' src='/js/lib/knockout.simpleGrid.3.0.js'></script>
+    <script type="text/javascript" src="/js/lib/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/js/lib/knockout-3.3.0.js"></script>
+    <script type="text/javascript" src="/js/lib/sammy-0.7.6.min.js"></script>
+    <script type="text/javascript" src="/js/lib/knockout.simpleGrid.3.0.js"></script>
     <link rel="stylesheet" href="/css/ko-grid.css">
     <link rel="stylesheet" href="/css/button-link.css">
   </head>
@@ -24,22 +24,22 @@
       Добро пожаловать!
     </div>
 
+    <!-- Employee and post lists -->
     <div data-bind="visible: page() == 'employees' || page() == 'posts'">
       <!-- List menu -->
       <p>
         <a href="" class="button-link" data-bind="click: update()">Обновить</a>
-        <a disabled="disabled" href="" class="button-link" data-bind="attr: { href: '#' + page() + '/add' }">Добавить</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/edit' },
-                                                  disable: !item()">Редактировать</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/remove' },
-                                                  disable: item()">Удалить</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/add' }">Добавить</a>
+        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/edit' }">Редактировать</a>
+        <a href="" class="button-link" data-bind="click: remove()">Удалить</a>
       </p>
 
       <!-- Data list -->
       <div data-bind="simpleGrid: listViewModel,
-                      simpleGridTemplate: 'sortable_grid_template'"></div>
-      <!-- Own simpleGrid template -->
-      <script type="text/html" id="sortable_grid_template">
+                      simpleGridTemplate: 'simpleGrid_grid',
+                      simpleGridPagerTemplate: 'simpleGrid_pageLinks'"></div>
+      <!-- Own simpleGrid templates -->
+      <script type="text/html" id="simpleGrid_grid">
         <table class="ko-grid" cellspacing="0">
           <thead>
             <tr data-bind="foreach: columns">
@@ -52,6 +52,14 @@
             </tr>
           </tbody>
         </table>
+      </script>
+      <script type="text/html" id="simpleGrid_pageLinks">
+        <div class="ko-grid-pageLinks" data-bind="visible: maxPageIndex() > 0">
+          <span>Page:</span>
+          <!-- ko foreach: ko.utils.range(0, maxPageIndex) -->
+          <a href="#" data-bind="text: $data + 1, click: function() { $root.currentPageIndex($data) }, css: { selected: $data == $root.currentPageIndex() }"></a>
+          <!-- /ko -->
+        </div>
       </script>
     </div>
 

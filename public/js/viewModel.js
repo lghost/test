@@ -7,14 +7,15 @@ ko.applyBindings(new function () {
   self.page = ko.observable();
   // Chosed item id
   self.item = ko.observable();
-  // Update function
-  self.update = ko.observable();
+
   // Employee list
   self.employees = ko.observableArray();
   // Post list
   self.posts = ko.observableArray();
 
+  // Employee list viewModel
   self.employeeGridModel = new ko.simpleGrid.viewModel({
+    // simpleGrid basic parameters here
     data: self.employees,
     columns: [
       { headerText: 'ФИО', rowText: 'formattedName' },
@@ -23,7 +24,7 @@ ko.applyBindings(new function () {
     ],
     pageSize: 10
   });
-
+  // Post list viewModel
   self.postGridModel = new ko.simpleGrid.viewModel({
     data: self.posts,
     columns: [
@@ -31,23 +32,27 @@ ko.applyBindings(new function () {
     ],
     pageSize: 10
   });
-
   // List view model depending on chosen view 
   // (not undefined due to some errors when app initialized)
   self.listViewModel = ko.observable(self.employeeGridModel);
 
+  // These functions get data from server via AJAX
   self.getEmployees = function() {
-    $.getJSON('/api/employees', function (data) {
-      self.employees($.map(data, function (item) {
+    $.getJSON('/api/employees', function (data) { // Get array of every employee parameters
+      self.employees($.map(data, function (item) { // Update self.employees by array of Employee objects
         return new Employee(item);
       }));
     });
   };
-
   self.getPosts = function() {
+    // Just call self.posts to update it by array of posts after it's received from server
     $.getJSON('/api/posts', self.posts);
   };
+  // Update function
+  self.update = ko.observable();
+  self.remove = ko.observable();
 
+  // Sammy router initialize
   self.router = Sammy(function() {
     this.get('#main', function() {
       self.title('Главная страница');
@@ -70,28 +75,14 @@ ko.applyBindings(new function () {
       self.listViewModel(self.postGridModel);
     });
 
-    this.get('#employees/add', function() {
-
+    this.get('#:page/add', function() {
+      if (self.page() != this.params.page)
+        this.app.runRoute('get', '#' + this.params.page);
     });
 
-    this.get('#posts/add', function() {
-
-    });
-
-    this.get('#employees/edit', function() {
-
-    });
-
-    this.get('#posts/edit', function() {
-
-    });
-
-    this.get('#employees/remove', function() {
-
-    });
-
-    this.get('#posts/remove', function() {
-
+    this.get('#:page/edit', function() {
+      if (self.page() != this.params.page)
+        this.app.runRoute('get', '#' + this.params.page);
     });
 
     // Main page is main page
@@ -99,5 +90,4 @@ ko.applyBindings(new function () {
   })
 
   self.router.run();
-
 }, document.getElementById('htmlTop')); // For title changing
