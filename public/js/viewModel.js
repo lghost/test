@@ -6,12 +6,15 @@ ko.applyBindings(new function () {
   // Chosed page
   self.page = ko.observable();
   // Chosed item id
-  self.item = ko.observable();
+  self.selected = ko.observable();
 
   // Employee list
   self.employees = ko.observableArray();
   // Post list
   self.posts = ko.observableArray();
+
+  self.employees.selected = self.selected;
+  self.posts.selected = self.selected;
 
   // Employee list viewModel
   self.employeeGridModel = new ko.simpleGrid.viewModel({
