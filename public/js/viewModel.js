@@ -5,20 +5,25 @@ ko.applyBindings(new function () {
   self.title = ko.observable();
   // Chosed page
   self.page = ko.observable();
-  // Chosed item id
-  self.selected = ko.observable();
 
   // Employee list
   self.employees = ko.observableArray();
   // Post list
   self.posts = ko.observableArray();
 
+  // Chosed item in list
+  self.selected = ko.observable();
+  // So... This is intermodel intagrating (for simpleGrid view template)
   self.employees.selected = self.selected;
   self.posts.selected = self.selected;
 
-  // Employee list viewModel
+  // Sorting parameters
+  self.employees.sortParams = ko.observable({ field: 'formattedName'/* , desc: false */ });
+  self.posts.sortParams = ko.observable({ field: 'value' });
+
+  // Employee list view model
   self.employeeGridModel = new ko.simpleGrid.viewModel({
-    // simpleGrid basic parameters here
+    // simpleGrid basic parameters
     data: self.employees,
     columns: [
       { headerText: 'ФИО', rowText: 'formattedName' },
@@ -27,7 +32,7 @@ ko.applyBindings(new function () {
     ],
     pageSize: 10
   });
-  // Post list viewModel
+  // Post list view model
   self.postGridModel = new ko.simpleGrid.viewModel({
     data: self.posts,
     columns: [
@@ -45,11 +50,14 @@ ko.applyBindings(new function () {
       self.employees($.map(data, function (item) { // Update self.employees by array of Employee objects
         return new Employee(item);
       }));
+      self.employees.sortByRowText(); // Initial sort
     });
   };
   self.getPosts = function() {
-    // Just call self.posts to update it by array of posts after it's received from server
-    $.getJSON('/api/posts', self.posts);
+    $.getJSON('/api/posts', function(data) {
+      self.posts(data);
+      self.posts.sortByRowText();
+    });
   };
   // Update function
   self.update = ko.observable();
