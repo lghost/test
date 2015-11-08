@@ -14,30 +14,35 @@
   <body>
     <!-- Navigation menu -->
     <ul>
-      <li><a href="#main">На главную</a><br/></li>
-      <li><a href="#employees">К списку сотрудников</a></li>
-      <li><a href="#posts">К списку должностей</a></li>
+      <li><a href="#/main/">На главную</a><br/></li>
+      <li><a href="#/employees/">К списку сотрудников</a></li>
+      <li><a href="#/posts/">К списку должностей</a></li>
     </ul>
 
-    <!-- Main page -->
-    <div data-bind="visible: page() == 'main'">
-      Добро пожаловать!
-    </div>
+    <!--  All in one page -->
+    <div data-bind="with: page">
+      <!--  Some text if need -->
+      <!-- ko with: content -->
+        <p data-bind="text: $data"></p>
+      <!-- /ko -->
 
-    <!-- Employee and post lists -->
-    <div data-bind="visible: page() == 'employees' || page() == 'posts'">
       <!-- List menu -->
-      <p>
-        <a href="" class="button-link" data-bind="click: update()">Обновить</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/add' }">Добавить</a>
-        <a href="" class="button-link" data-bind="attr: { href: '#' + page() + '/edit' }">Редактировать</a>
-        <a href="" class="button-link" data-bind="click: remove()">Удалить</a>
+      <p data-bind="with: controls">
+        <a href="#" class="button-link" data-bind="click: update">Обновить</a>
+        <a class="button-link" data-bind="attr: { href: '#/' + $parent.pageName() + '/add/' }">Добавить</a>
+        <!-- ko if: $parent.selected -->
+          <a class="button-link" data-bind="attr: { href: '#/' + $parent.pageName() + '/edit/' + $parent.selected() + '/'}">Редактировать</a>
+          <a href="#" class="button-link" data-bind="click: remove">Удалить</a>
+        <!-- /ko -->
       </p>
 
       <!-- Data list -->
-      <div data-bind="simpleGrid: listViewModel,
-                      simpleGridTemplate: 'simpleGrid_grid',
-                      simpleGridPagerTemplate: 'simpleGrid_pageLinks'"></div>
+      <!-- ko with: viewModel -->
+        <div data-bind="simpleGrid: $data,
+                        simpleGridTemplate: 'simpleGrid_grid',
+                        simpleGridPagerTemplate: 'simpleGrid_pageLinks'"></div>
+      <!-- /ko -->
+
       <!-- Own simpleGrid templates -->
       <script type="text/html" id="simpleGrid_grid">
         <table class="ko-grid" cellspacing="0">
@@ -53,15 +58,15 @@
               }">
                 <span data-bind="text: headerText"></span>
                 <!-- ko with: $root.data.sortParams -->
-                  <span class="right-aligned" data-bind="visible: $data.field == $parent.rowText, text: $data.desc ? '&#x25B2;' :'&#x25BC;'"></span>
+                  <span class="right-aligned" data-bind="text: $data.field != $parent.rowText ? '' : ($data.desc ? '&#x25B2;' : '&#x25BC;')"></span>
                 <!-- /ko -->
               </th>
             </tr>
           </thead>
           <tbody data-bind="foreach: itemsOnCurrentPage">
             <tr data-bind="foreach: $parent.columns, click: function() {
-              if ($parent.data.selected) $parent.data.selected($parent.data.selected() == $data ? undefined : $data);
-            }, css: { selected: $parent.data.selected() == $data };">
+              if ($parent.data.selected) $parent.data.selected($parent.data.selected() == $data.id ? undefined : $data.id);
+            }, css: { selected: $parent.data.selected() == $data.id };">
               <td data-bind="text: typeof rowText == 'function' ? rowText($parent) : $parent[rowText] "></td>
             </tr>
           </tbody>
