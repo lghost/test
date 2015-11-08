@@ -1,0 +1,16 @@
+body {
+  padding-top: 70px;
+}
+
+.table-hover tr:hover {
+  cursor: pointer;
+}
+
+.table th:hover {
+  background-color: #f5f5f5; 
+}
+
+.table span.right-aligned {
+  float: right;
+  width: 20px;
+}

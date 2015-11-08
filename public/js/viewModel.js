@@ -28,19 +28,22 @@ ko.applyBindings(new function () {
   // So... This is intermodel intagrating (for simpleGrid view template)
   // Selected item in list (linked to main view model)
   for (var list in self.lists) self.lists[list].selected = self.page.selected;
-  // Sorting parameters
+  // Sorting parameters. You can specify default sorting field and direction for every list
   self.lists.employees.sortParams = ko.observable({ field: 'formattedName'/* , desc: false */ });
   self.lists.posts.sortParams = ko.observable({ field: 'value' });
 
   // Page parameters
   self.pages = {
+    // Simple page
     'main': {
       title: 'Главная страница',
       content: 'Добро пожаловать!'
     },
 
+    // Page with list
     'employees': {
       title: 'Список сотрудников',
+      // List control functions
       controls: {
         // Update function gets data from server via AJAX
         update: function() {
@@ -102,33 +105,47 @@ ko.applyBindings(new function () {
 
   // Sammy router initialize
   self.router = Sammy(function() {
+    // Basic pages loading
     this.get('/\#\/(main|employees|posts)/', function() {
+      // Getting pageName from URL
       var pageName = this.params.splat[0];
       var page = self.pages[pageName];
 
+      // Page parameters setting up
       self.title(page.title);
       self.page.pageName(pageName);
       self.page.content(page.content);
       self.page.controls(page.controls);
-      if (page.controls) page.controls.update();
+      if (page.controls) page.controls.update(); // Getting list from server
       self.page.viewModel(page.viewModel);
-      self.page.selected(undefined);
+      self.page.selected(undefined); // Clear chosed item for new page
     });
 
-    this.get('/\#\/(employees|posts)\/(add|edit\/[0-9]+)/', function() {
+    // Actions handler
+    this.get('/\#\/(employees|posts)\/(add|edit\/[0-9]+)/', function() { // Only /#/PAGE/add/ and /#/PAGE/edit/ID/ accepted
+      // Getting parameters from URL
       var result = this.params.splat;
       var pageName = result[0];
       var actionName = result[1].split('/')[0];
       var id = result[1].split('/')[1];
 
+      // If we comes by a pure URL, not by Button pressing
       if (self.page.pageName() != pageName) {
+        // If we get id of item that we want to be selected we need:
+        // - Wait for list comes from server
+        // - Check that list contains this item
+        // - Select it
         if (id) {
+          // We can use single-shot subscribtion to accomplish this task
           self.lists[pageName].subscribe(function() {
+            // Check
             var item = self.page.viewModel().data().filter(function(el) {
               return el.id == id;
             })[0];
 
+            // Select
             if (item) self.page.selected(item.id);
+            // Unsubscribe
             this.dispose();
           });
         }
@@ -136,7 +153,6 @@ ko.applyBindings(new function () {
         this.app.runRoute('get', '/#/' + pageName + '/');
       }
     });
-
     // Main page is main page
     this.get('', function() { this.app.runRoute('get', '/#/main/') });
   })

@@ -6,33 +6,51 @@
     <script type="text/javascript" src="/js/lib/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="/js/lib/knockout-3.3.0.js"></script>
     <script type="text/javascript" src="/js/lib/sammy-0.7.6.min.js"></script>
-    <script type="text/javascript" src="/js/lib/knockout.simpleGrid.3.0.js"></script>
-    <link rel="stylesheet" href="/css/ko-grid.css">
-    <link rel="stylesheet" href="/css/button-link.css">
+    <script type="text/javascript" src="/js/lib/knockout.simpleGrid-3.0.js"></script>
+    <script type="text/javascript" src="/js/lib/bootstrap-3.3.5.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/lib/bootstrap-3.3.5.min.css">
+    <link rel="stylesheet" href="/css/lib/bootstrap-theme-3.3.5.min.css">
   </head>
 
   <body>
     <!-- Navigation menu -->
-    <ul>
-      <li><a href="#/main/">На главную</a><br/></li>
-      <li><a href="#/employees/">К списку сотрудников</a></li>
-      <li><a href="#/posts/">К списку должностей</a></li>
-    </ul>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <!-- Navigation button (for small screen) -->
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li role="presentation" data-bind="css: { active: page.pageName() == 'main' }"><a href="#/main/">Главная</a></li>
+            <li role="presentation" data-bind="css: { active: page.pageName() == 'employees' }"><a href="#/employees/">Список сотрудников</a></li>
+            <li role="presentation" data-bind="css: { active: page.pageName() == 'posts' }"><a href="#/posts/">Список должностей</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
 
     <!--  All in one page -->
-    <div data-bind="with: page">
+    <div class="container" data-bind="with: page">
       <!--  Some text if need -->
-      <!-- ko with: content -->
-        <p data-bind="text: $data"></p>
-      <!-- /ko -->
+      <div class="jumbotron">
+        <h2 data-bind="text: $root.title"></h2>
+        <p data-bind="text: content"></p>
+      </div>
 
       <!-- List menu -->
       <p data-bind="with: controls">
-        <a href="#" class="button-link" data-bind="click: update">Обновить</a>
-        <a class="button-link" data-bind="attr: { href: '#/' + $parent.pageName() + '/add/' }">Добавить</a>
+        <a href="#" class="btn btn-default" data-bind="click: update">Обновить</a>
+        <a class="btn btn-default" data-bind="attr: { href: '#/' + $parent.pageName() + '/add/' }">Добавить</a>
         <!-- ko if: $parent.selected -->
-          <a class="button-link" data-bind="attr: { href: '#/' + $parent.pageName() + '/edit/' + $parent.selected() + '/'}">Редактировать</a>
-          <a href="#" class="button-link" data-bind="click: remove">Удалить</a>
+        <a class="btn btn-default" data-bind="attr: { href: '#/' + $parent.pageName() + '/edit/' + $parent.selected() + '/'}">Редактировать</a>
+        <a href="#" class="btn btn-default" data-bind="click: remove">Удалить</a>
         <!-- /ko -->
       </p>
 
@@ -45,7 +63,7 @@
 
       <!-- Own simpleGrid templates -->
       <script type="text/html" id="simpleGrid_grid">
-        <table class="ko-grid" cellspacing="0">
+        <table class="table table-striped table-hover table-bordered">
           <thead>
             <tr data-bind="foreach: columns">
               <th data-bind="click: function() {
@@ -58,28 +76,53 @@
               }">
                 <span data-bind="text: headerText"></span>
                 <!-- ko with: $root.data.sortParams -->
-                  <span class="right-aligned" data-bind="text: $data.field != $parent.rowText ? '' : ($data.desc ? '&#x25B2;' : '&#x25BC;')"></span>
+                <span class="right-aligned" data-bind="text: $data.field != $parent.rowText ? '' : ($data.desc ? '&#x25B2;' : '&#x25BC;')"></span>
                 <!-- /ko -->
               </th>
             </tr>
           </thead>
           <tbody data-bind="foreach: itemsOnCurrentPage">
             <tr data-bind="foreach: $parent.columns, click: function() {
-              if ($parent.data.selected) $parent.data.selected($parent.data.selected() == $data.id ? undefined : $data.id);
-            }, css: { selected: $parent.data.selected() == $data.id };">
+              if ($parent.data.selected && $data.id)
+                $parent.data.selected($parent.data.selected() == $data.id ? undefined : $data.id);
+            }, css: { active: $data.id && $parent.data.selected() == $data.id };">
               <td data-bind="text: typeof rowText == 'function' ? rowText($parent) : $parent[rowText] "></td>
             </tr>
           </tbody>
         </table>
       </script>
       <script type="text/html" id="simpleGrid_pageLinks">
-        <div class="ko-grid-pageLinks" data-bind="visible: maxPageIndex() > 0">
-          <span>Page:</span>
-          <!-- ko foreach: ko.utils.range(0, maxPageIndex) -->
-          <a href="#" data-bind="text: $data + 1, click: function() { $root.currentPageIndex($data) }, css: { selected: $data == $root.currentPageIndex() }"></a>
-          <!-- /ko -->
-        </div>
+        <nav>
+          <ul class="pagination">
+            <li data-bind="css: { disabled: $root.currentPageIndex() == 0 }">
+              <a href="#" aria-label="Previous" data-bind="click: function() {
+                if ($root.currentPageIndex() > 0)
+                  $root.currentPageIndex($root.currentPageIndex() - 1)
+              }">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <!-- ko foreach: ko.utils.range(0, maxPageIndex) -->
+            <li data-bind="css: { active: $data == $root.currentPageIndex() }">
+              <a href="#" data-bind="text: $data + 1, click: function() { $root.currentPageIndex($data) }"></a>
+            </li>
+            <!-- /ko -->
+            <li data-bind="css: { disabled: $root.currentPageIndex() == $root.maxPageIndex() }">
+              <a href="#" aria-label="Next" data-bind="click: function() {
+                if ($root.currentPageIndex() < $root.maxPageIndex())
+                  $root.currentPageIndex($root.currentPageIndex() + 1)
+              }">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </script>
+    </div>
+
+    <!-- Actions -->
+    <div data-bind="with: action">
+
     </div>
 
     <script type='text/javascript' src='/js/employee.js'></script>
