@@ -95,7 +95,10 @@ ko.applyBindings(new function () {
           { headerText: 'Возраст', rowText: 'age' }
         ],
         pageSize: 10
-      })
+      }),
+      fields: {
+        post: ko.observable()
+      }
     },
 
     'posts': {
@@ -148,7 +151,6 @@ ko.applyBindings(new function () {
       init: function() {
         var item = self.getItemById(self.page.selected());
 
-        console.log(item);
         if (item)
           for (var field in self.action.fields())
             self.action.fields()[field](item[field]);
@@ -205,11 +207,9 @@ ko.applyBindings(new function () {
           // We can use single-shot subscribtion to accomplish this task
           self.lists[pageName].subscribe(function() {
             // Check
-            var item = self.getItemById(id, pageName);
-
-            if (item) {
+            if (self.getItemById(id, pageName)) {
               // Select
-              self.page.selected(item.id);
+              self.page.selected(id);
               // Start action
               self.action.visible(true);
             // If we cannot find item - move to list view
@@ -226,10 +226,14 @@ ko.applyBindings(new function () {
 
       // Otherwise nothing to wait, just start action too
       } else if (id) {
-        if (self.getItemById(id)) self.action.visible(true);
+        if (self.getItemById(id)) {
+          self.page.selected(id);
+          self.action.visible(true);
+        }
         else window.location = '/#/' + pageName + '/';
       } else self.action.visible(true);
     });
+
     // Main page is main page
     this.get('', function() { this.app.runRoute('get', '/#/main/') });
   })
