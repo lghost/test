@@ -14,8 +14,10 @@ ko.applyBindings(new function () {
     // Chosed item in list
     selected: ko.observable()
   };
-  // Chosed action
-  self.action = ko.observable();
+  // Action architecture
+  self.action = {
+
+  };
 
   // Data lists
   self.lists = {
@@ -111,6 +113,8 @@ ko.applyBindings(new function () {
       var pageName = this.params.splat[0];
       var page = self.pages[pageName];
 
+      // Nothing to do if page is already loaded
+      if (self.page.pageName() == pageName) return;
       // Page parameters setting up
       self.title(page.title);
       self.page.pageName(pageName);

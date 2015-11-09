@@ -8,6 +8,7 @@
     <script type="text/javascript" src="/js/lib/sammy-0.7.6.min.js"></script>
     <script type="text/javascript" src="/js/lib/knockout.simpleGrid-3.0.js"></script>
     <script type="text/javascript" src="/js/lib/bootstrap-3.3.5.min.js"></script>
+    <script type="text/javascript" src="/js/lib/knockstrap-1.3.0.min.js"></script>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/lib/bootstrap-3.3.5.min.css">
     <link rel="stylesheet" href="/css/lib/bootstrap-theme-3.3.5.min.css">
@@ -121,9 +122,22 @@
     </div>
 
     <!-- Actions -->
-    <div data-bind="with: action">
+    <!-- ko with: action -->
+    <div data-bind="modal: {
+        visible: action,
+        header: { data: { label: 'headerLabel' } },
+        body: { name: 'bodyTemplate', data: 'bodyData' },
+        footer: { data: { action: 'switchTemplates', closeLabel: 'Отмена', primaryLabel: 'Добавить' } }
+    }"></div>
+    <!-- /ko -->
 
-    </div>
+    <script type="text/html" id="bodyTemplate">
+      <!--p data-bind="text: text"></p>
+      <div class="form-group">
+        <label data-bind="text: label"></label>
+        <input type="text" data-bind="value: label, valueUpdate: 'afterkeydown'" class="form-control" />
+      </div-->
+    </script>
 
     <script type='text/javascript' src='/js/employee.js'></script>
     <script type='text/javascript' src='/js/sorter.js'></script>
