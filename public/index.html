@@ -47,7 +47,9 @@
 
       <!-- List menu -->
       <p data-bind="with: controls">
-        <a href="#" class="btn btn-default" data-bind="click: update">Обновить</a>
+        <a href="#" class="btn btn-default" data-bind="click: update">
+          <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Обновить
+        </a>
         <a class="btn btn-default" data-bind="attr: { href: '#/' + $parent.pageName() + '/add/' }">Добавить</a>
         <!-- ko if: $parent.selected -->
         <a class="btn btn-default" data-bind="attr: { href: '#/' + $parent.pageName() + '/edit/' + $parent.selected() + '/'}">Редактировать</a>
@@ -57,9 +59,9 @@
 
       <!-- Data list -->
       <!-- ko with: viewModel -->
-        <div data-bind="simpleGrid: $data,
-                        simpleGridTemplate: 'simpleGrid_grid',
-                        simpleGridPagerTemplate: 'simpleGrid_pageLinks'"></div>
+      <div data-bind="simpleGrid: $data,
+                      simpleGridTemplate: 'simpleGrid_grid',
+                      simpleGridPagerTemplate: 'simpleGrid_pageLinks'"></div>
       <!-- /ko -->
 
       <!-- Own simpleGrid templates -->
@@ -122,21 +124,40 @@
     </div>
 
     <!-- Actions -->
-    <!-- ko with: action -->
+    <!-- ko if: action.bodyTemplate -->
     <div data-bind="modal: {
-        visible: action,
-        header: { data: { label: 'headerLabel' } },
-        body: { name: 'bodyTemplate', data: 'bodyData' },
-        footer: { data: { action: 'switchTemplates', closeLabel: 'Отмена', primaryLabel: 'Добавить' } }
+      visible: action.visible,
+      header: { data: { label: action.label } },
+      body: { name: action.bodyTemplate, data: action.fields },
+      footer: { data: {
+        action: function() { action.action(); },
+        closeLabel: 'Отмена',
+        primaryLabel: action.buttonLabel
+      } }
+    }, event: {
+      'hidden.bs.modal': function() {
+        window.location.href = '/#/' + page.pageName() + '/';
+      },
+      'shown.bs.modal': function() {
+        action.init();
+      }
     }"></div>
     <!-- /ko -->
 
-    <script type="text/html" id="bodyTemplate">
-      <!--p data-bind="text: text"></p>
+    <script type="text/html" id="employees_ModalBodyTemplate">
+      <!--p data-bind="text: 'text'"></p>
       <div class="form-group">
-        <label data-bind="text: label"></label>
-        <input type="text" data-bind="value: label, valueUpdate: 'afterkeydown'" class="form-control" />
+        <label data-bind="text: 'label'"></label>
       </div-->
+    </script>
+
+    <!-- Post editor -->
+    <script type="text/html" id="posts_ModalBodyTemplate">
+      <div class="form-group">
+        <label data-bind="text: 'Название:'"></label>
+        <!--input type="text" data-bind="" class="form-control" /-->
+        <input type="text" data-bind="value: value, valueUpdate: 'afterkeydown'" />
+      </div>
     </script>
 
     <script type='text/javascript' src='/js/employee.js'></script>

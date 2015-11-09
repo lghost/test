@@ -16,7 +16,15 @@ ko.applyBindings(new function () {
   };
   // Action architecture
   self.action = {
-
+    visible: ko.observable(),
+    // Label of modal window
+    label: ko.observable(),
+    // Modal window body template name
+    bodyTemplate: ko.observable(),
+    // Accept button label (Add or Edit, for example)
+    buttonLabel: ko.observable(),
+    // Model-Template fields
+    fields: ko.observable(),
   };
 
   // Data lists
@@ -34,6 +42,15 @@ ko.applyBindings(new function () {
   self.lists.employees.sortParams = ko.observable({ field: 'formattedName'/* , desc: false */ });
   self.lists.posts.sortParams = ko.observable({ field: 'value' });
 
+  // Helper function for data lists
+  self.getItemById = function(id, pageName) {
+    if (!pageName) pageName = self.page.pageName();
+    if (!pageName) return;
+    return self.lists[pageName]().filter(function(el) {
+      return el.id == id;
+    })[0];
+  };
+
   // Page parameters
   self.pages = {
     // Simple page
@@ -45,6 +62,8 @@ ko.applyBindings(new function () {
     // Page with list
     'employees': {
       title: 'Список сотрудников',
+      // Label for action modal window
+      actionLabel: 'сотрудника',
       // List control functions
       controls: {
         // Update function gets data from server via AJAX
@@ -55,6 +74,12 @@ ko.applyBindings(new function () {
             }));
             self.lists.employees.sortByRowText(); // Initial sort
           });
+        },
+        add: function() {
+
+        },
+        edit: function() {
+
         },
         remove: function() {
 
@@ -75,6 +100,7 @@ ko.applyBindings(new function () {
 
     'posts': {
       title: 'Список должностей',
+      actionLabel: 'должность',
       controls: {
         update: function() {
           // Get'n'Renew
@@ -82,6 +108,12 @@ ko.applyBindings(new function () {
             self.lists.posts(data);
             self.lists.posts.sortByRowText();
           });
+        },
+        add: function() {
+
+        },
+        edit: function() {
+
         },
         remove: function() {
 
@@ -94,14 +126,33 @@ ko.applyBindings(new function () {
           { headerText: 'Название', rowText: 'value' }
         ],
         pageSize: 10
-      })
+      }),
+      fields: {
+        value: ko.observable()
+      }
     }
   };
 
   self.actions = {
     'add': {
+      label: 'Добавить',
+      buttonLabel: 'Добавить',
+      init: function() {
+        for (var field in self.action.fields())
+          self.action.fields()[field](null);
+      }
     },
     'edit': {
+      label: 'Редактировать',
+      buttonLabel: 'Сохранить',
+      init: function() {
+        var item = self.getItemById(self.page.selected());
+
+        console.log(item);
+        if (item)
+          for (var field in self.action.fields())
+            self.action.fields()[field](item[field]);
+      }
     }
   };
 
@@ -113,8 +164,11 @@ ko.applyBindings(new function () {
       var pageName = this.params.splat[0];
       var page = self.pages[pageName];
 
+      // Hide any action
+      self.action.visible(false);
       // Nothing to do if page is already loaded
       if (self.page.pageName() == pageName) return;
+
       // Page parameters setting up
       self.title(page.title);
       self.page.pageName(pageName);
@@ -133,6 +187,14 @@ ko.applyBindings(new function () {
       var actionName = result[1].split('/')[0];
       var id = result[1].split('/')[1];
 
+      self.action.label(self.actions[actionName].label + ' ' +
+                        self.pages[pageName].actionLabel);
+      self.action.bodyTemplate(pageName + '_ModalBodyTemplate');
+      self.action.buttonLabel(self.actions[actionName].buttonLabel);
+      self.action.action = self.pages[pageName].controls[actionName];
+      self.action.fields(self.pages[pageName].fields);
+      self.action.init = self.actions[actionName].init;
+
       // If we comes by a pure URL, not by Button pressing
       if (self.page.pageName() != pageName) {
         // If we get id of item that we want to be selected we need:
@@ -143,19 +205,30 @@ ko.applyBindings(new function () {
           // We can use single-shot subscribtion to accomplish this task
           self.lists[pageName].subscribe(function() {
             // Check
-            var item = self.page.viewModel().data().filter(function(el) {
-              return el.id == id;
-            })[0];
+            var item = self.getItemById(id, pageName);
 
-            // Select
-            if (item) self.page.selected(item.id);
+            if (item) {
+              // Select
+              self.page.selected(item.id);
+              // Start action
+              self.action.visible(true);
+            // If we cannot find item - move to list view
+            } else window.location = '/#/' + pageName + '/';
+
             // Unsubscribe
             this.dispose();
           });
-        }
+        } // Otherwise nothing to wait, just start action, but after base page loaded (see below)
 
+        // Now run base page route
         this.app.runRoute('get', '/#/' + pageName + '/');
-      }
+        if (!id) self.action.visible(true);
+
+      // Otherwise nothing to wait, just start action too
+      } else if (id) {
+        if (self.getItemById(id)) self.action.visible(true);
+        else window.location = '/#/' + pageName + '/';
+      } else self.action.visible(true);
     });
     // Main page is main page
     this.get('', function() { this.app.runRoute('get', '/#/main/') });
