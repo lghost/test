@@ -1,11 +1,15 @@
 ko.applyBindings(new function () {
   var self = this;
 
+  self.tst = ko.observable();
+
   // Title
   self.title = ko.observable();
+
   // Page architecture
   self.page = {
     pageName: ko.observable(),
+    // Some text maybe
     content: ko.observable(),
     // List controls
     controls: ko.observable(),
@@ -14,9 +18,12 @@ ko.applyBindings(new function () {
     // Chosed item in list
     selected: ko.observable()
   };
+
   // Action architecture
   self.action = {
     visible: ko.observable(),
+    // Modal window render allow observable (see enable/disable)
+    allow: ko.observable(),
     // Label of modal window
     label: ko.observable(),
     // Modal window body template name
@@ -24,7 +31,26 @@ ko.applyBindings(new function () {
     // Accept button label (Add or Edit, for example)
     buttonLabel: ko.observable(),
     // Model-Template fields
-    fields: ko.observable(),
+    fieldsData: ko.observable(),
+    // Template init function
+    init: ko.observable()
+  };
+  // Function, that prepares fields in modal window depending on add or edit init function
+  // It calls when modal generating
+  self.action.fields = ko.computed(function() {
+    if (self.action.init()) self.action.init()();
+    return self.action.fieldsData();
+  });
+  self.action.enable = function() {
+    // Allow modal render
+    self.action.allow(true);
+    // Show modal
+    self.action.visible(true);
+  };
+  self.action.disable = function() {
+    // First hide modal
+    self.action.visible(false);
+    // Disabling happens when modal completely disappear
   };
 
   // Data lists
@@ -46,9 +72,8 @@ ko.applyBindings(new function () {
   self.getItemById = function(id, pageName) {
     if (!pageName) pageName = self.page.pageName();
     if (!pageName) return;
-    return self.lists[pageName]().filter(function(el) {
-      return el.id == id;
-    })[0];
+    if (!self.lists[pageName]) return;
+    return self.lists[pageName].getById(id);
   };
 
   // Page parameters
@@ -112,8 +137,10 @@ ko.applyBindings(new function () {
             self.lists.posts.sortByRowText();
           });
         },
-        add: function() {
-
+        add: function(fields) {
+          // if data correct
+          //   ajax request
+          //     if success self.action.disable()
         },
         edit: function() {
 
@@ -131,7 +158,7 @@ ko.applyBindings(new function () {
         pageSize: 10
       }),
       fields: {
-        value: ko.observable()
+        value: ko.observable().extend({ required: { params: true, message: 'Поле не должно быть пустым' } })
       }
     }
   };
@@ -140,20 +167,22 @@ ko.applyBindings(new function () {
     'add': {
       label: 'Добавить',
       buttonLabel: 'Добавить',
+      // Fields preparing function (clearing)
       init: function() {
-        for (var field in self.action.fields())
-          self.action.fields()[field](null);
+        for (var field in self.action.fieldsData())
+          self.action.fieldsData()[field](null);
       }
     },
     'edit': {
       label: 'Редактировать',
       buttonLabel: 'Сохранить',
+      // Fields preparing function (filling)
       init: function() {
         var item = self.getItemById(self.page.selected());
 
         if (item)
-          for (var field in self.action.fields())
-            self.action.fields()[field](item[field]);
+          for (var field in self.action.fieldsData())
+            self.action.fieldsData()[field](item[field]);
       }
     }
   };
@@ -167,7 +196,7 @@ ko.applyBindings(new function () {
       var page = self.pages[pageName];
 
       // Hide any action
-      self.action.visible(false);
+      self.action.disable();
       // Nothing to do if page is already loaded
       if (self.page.pageName() == pageName) return;
 
@@ -194,10 +223,10 @@ ko.applyBindings(new function () {
       self.action.bodyTemplate(pageName + '_ModalBodyTemplate');
       self.action.buttonLabel(self.actions[actionName].buttonLabel);
       self.action.action = self.pages[pageName].controls[actionName];
-      self.action.fields(self.pages[pageName].fields);
-      self.action.init = self.actions[actionName].init;
+      self.action.fieldsData(self.pages[pageName].fields);
+      self.action.init(self.actions[actionName].init);
 
-      // If we comes by a pure URL, not by Button pressing
+      // If we comes by a new URL, not by Button pressing or navi buttons
       if (self.page.pageName() != pageName) {
         // If we get id of item that we want to be selected we need:
         // - Wait for list comes from server
@@ -211,7 +240,7 @@ ko.applyBindings(new function () {
               // Select
               self.page.selected(id);
               // Start action
-              self.action.visible(true);
+              self.action.enable();
             // If we cannot find item - move to list view
             } else window.location = '/#/' + pageName + '/';
 
@@ -222,16 +251,16 @@ ko.applyBindings(new function () {
 
         // Now run base page route
         this.app.runRoute('get', '/#/' + pageName + '/');
-        if (!id) self.action.visible(true);
+        if (!id) self.action.enable();
 
-      // Otherwise nothing to wait, just start action too
+      // Otherwise nothing to wait, checking is much simplier
       } else if (id) {
         if (self.getItemById(id)) {
           self.page.selected(id);
-          self.action.visible(true);
+          self.action.enable();
         }
         else window.location = '/#/' + pageName + '/';
-      } else self.action.visible(true);
+      } else self.action.enable();
     });
 
     // Main page is main page
