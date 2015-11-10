@@ -1,8 +1,6 @@
 ko.applyBindings(new function () {
   var self = this;
 
-  self.tst = ko.observable();
-
   // Title
   self.title = ko.observable();
 
@@ -16,7 +14,9 @@ ko.applyBindings(new function () {
     // List view model (simpleGrid VM)
     viewModel: ko.observable(),
     // Chosed item in list
-    selected: ko.observable()
+    selected: ko.observable(),
+    // Danger alert message
+    errorMessage: ko.observable()
   };
 
   // Action architecture
@@ -30,17 +30,21 @@ ko.applyBindings(new function () {
     bodyTemplate: ko.observable(),
     // Accept button label (Add or Edit, for example)
     buttonLabel: ko.observable(),
-    // Model-Template fields
-    fieldsData: ko.observable(),
-    // Template init function
-    init: ko.observable()
+    errorMessage: ko.observable()
   };
-  // Function, that prepares fields in modal window depending on add or edit init function
-  // It calls when modal generating
-  self.action.fields = ko.computed(function() {
-    if (self.action.init()) self.action.init()();
-    return self.action.fieldsData();
-  });
+  // Function, that prepares fields for modal window depending on add or edit action
+  // It calls when modal showing
+  self.action.getFields = function() {
+    /* Don't know why, but when I use showAllMessages(false)
+     * modal Knockstrap modal renderer calls this function
+     * every time I change fields. So I just avoid this problem. */
+    if (self.action.showed) return self.action.fields;
+    self.action.showed = true;
+
+    self.action.init();
+    self.action.fields.errors.showAllMessages(false);
+    return self.action.fields;
+  };
   self.action.enable = function() {
     // Allow modal render
     self.action.allow(true);
@@ -93,15 +97,16 @@ ko.applyBindings(new function () {
       controls: {
         // Update function gets data from server via AJAX
         update: function() {
-          $.getJSON('/api/employees', function (data) { // Get array of every employee parameters
-            self.lists.employees($.map(data, function (item) { // Update self.employees by array of Employee objects
+          $.getJSON('/api/employees', function (response) { // Get array of every employee parameters
+            self.lists.employees($.map(response, function (item) { // Update self.employees by array of Employee objects
               return new Employee(item);
             }));
             self.lists.employees.sortByRowText(); // Initial sort
           });
         },
         add: function() {
-
+          //self.action.fields.errors.showAllMessages(true);
+          
         },
         edit: function() {
 
@@ -121,9 +126,13 @@ ko.applyBindings(new function () {
         ],
         pageSize: 10
       }),
-      fields: {
-        post: ko.observable()
-      }
+      fields: ko.validatedObservable({
+        firstName: ko.observable().extend({ required: { params: true, message: 'Поле не должно быть пустым' } }),
+        lastName: ko.observable().extend({ required: { params: true, message: 'Поле не должно быть пустым' } }),
+        middleName: ko.observable().extend({ required: { params: true, message: 'Поле не должно быть пустым' } }),
+        age: ko.observable(),
+        postId: ko.observable()
+      })
     },
 
     'posts': {
@@ -137,16 +146,66 @@ ko.applyBindings(new function () {
             self.lists.posts.sortByRowText();
           });
         },
-        add: function(fields) {
-          // if data correct
-          //   ajax request
-          //     if success self.action.disable()
+        add: function() {
+          if (self.action.fields.isValid()) {
+            // $.post() doesn't support header specifying, so we use pure $.ajax()
+            $.ajax({
+              type: 'POST',
+              url: '/api/posts/add',
+              contentType: "application/json",
+              data: ko.toJSON(self.action.fields),
+              /* After sending we get simple object. If it contains err - sorry,
+               * we cannot add new post */
+              success: function(response) {
+                if (response.err) self.action.errorMessage(response.err);
+                else {
+                  // Adding new object is better than whole list updating
+                  self.lists.posts.push({
+                    id: parseInt(response.id),
+                    value: self.action.fields().value()
+                  });
+                  self.lists.posts.sortByRowText();
+                  self.action.disable();
+                }
+              },
+              dataType: 'json'
+            });
+          } else self.action.fields.errors.showAllMessages(true);
         },
         edit: function() {
-
+          if (self.action.fields.isValid()) {
+            $.ajax({
+              type: 'POST',
+              url: '/api/posts/edit/' + self.page.selected(),
+              contentType: "application/json",
+              data: ko.toJSON(self.action.fields),
+              success: function(response) {
+                if (response.err) self.action.errorMessage(response.err);
+                else {
+                  self.lists.posts.remove(function(element) {
+                    return element.id == self.page.selected();
+                  });
+                  self.lists.posts.push({
+                    id: self.page.selected(),
+                    value: self.action.fields().value()
+                  });
+                  self.lists.posts.sortByRowText();
+                  self.action.disable();
+                }
+              },
+              dataType: 'json'
+            });
+          } else self.action.fields.errors.showAllMessages(true);
         },
         remove: function() {
-
+          $.get('/api/posts/remove/' + self.page.selected(), function(response) {
+            if (response.err) self.page.errorMessage(response.err);
+            else {
+              self.lists.posts.remove(function(element) {
+                return element.id == self.page.selected();
+              });
+            }
+          });
         }
       },
       // Post list view model
@@ -157,9 +216,9 @@ ko.applyBindings(new function () {
         ],
         pageSize: 10
       }),
-      fields: {
+      fields: ko.validatedObservable({
         value: ko.observable().extend({ required: { params: true, message: 'Поле не должно быть пустым' } })
-      }
+      })
     }
   };
 
@@ -169,8 +228,8 @@ ko.applyBindings(new function () {
       buttonLabel: 'Добавить',
       // Fields preparing function (clearing)
       init: function() {
-        for (var field in self.action.fieldsData())
-          self.action.fieldsData()[field](null);
+        for (var field in self.action.fields())
+          self.action.fields()[field](null);
       }
     },
     'edit': {
@@ -181,8 +240,8 @@ ko.applyBindings(new function () {
         var item = self.getItemById(self.page.selected());
 
         if (item)
-          for (var field in self.action.fieldsData())
-            self.action.fieldsData()[field](item[field]);
+          for (var field in self.action.fields())
+            self.action.fields()[field](item[field]);
       }
     }
   };
@@ -207,7 +266,7 @@ ko.applyBindings(new function () {
       self.page.controls(page.controls);
       if (page.controls) page.controls.update(); // Getting list from server
       self.page.viewModel(page.viewModel);
-      self.page.selected(undefined); // Clear chosed item for new page
+      self.page.selected(null); // Clear chosed item for new page
     });
 
     // Actions handler
@@ -223,15 +282,17 @@ ko.applyBindings(new function () {
       self.action.bodyTemplate(pageName + '_ModalBodyTemplate');
       self.action.buttonLabel(self.actions[actionName].buttonLabel);
       self.action.action = self.pages[pageName].controls[actionName];
-      self.action.fieldsData(self.pages[pageName].fields);
-      self.action.init(self.actions[actionName].init);
+      // Model-Template fields
+      self.action.fields = self.pages[pageName].fields;
+      // Template init function
+      self.action.init = self.actions[actionName].init;
 
       // If we comes by a new URL, not by Button pressing or navi buttons
       if (self.page.pageName() != pageName) {
-        // If we get id of item that we want to be selected we need:
-        // - Wait for list comes from server
-        // - Check that list contains this item
-        // - Select it
+        /* If we get id of item that we want to be selected we need:
+         * - Wait for list comes from server
+         * - Check that list contains this item
+         * - Select it */
         if (id) {
           // We can use single-shot subscribtion to accomplish this task
           self.lists[pageName].subscribe(function() {

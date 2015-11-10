@@ -6,6 +6,7 @@ function Employee(args) {
   self.lastName = args.lastName || "";
   self.middleName = args.middleName || "";
   self.post = args.post.value;
+  self.postId = args.postId;
   self.age = args.age;
 
   self.formattedName = ko.computed(function() {

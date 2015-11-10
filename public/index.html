@@ -5,6 +5,7 @@
     <title data-bind="text: title"></title>
     <script type="text/javascript" src="/js/lib/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="/js/lib/bootstrap-3.3.5.min.js"></script>
+    <script type="text/javascript" src="/js/lib/bootstrap-spinedit-2.2.1.js"></script>
     <script type="text/javascript" src="/js/lib/knockout-3.3.0.js"></script>
     <script type="text/javascript" src="/js/lib/knockout.simpleGrid-3.0.js"></script>
     <script type="text/javascript" src="/js/lib/knockout.validation-2.0.3.min.js"></script>
@@ -13,6 +14,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/lib/bootstrap-3.3.5.min.css">
     <link rel="stylesheet" href="/css/lib/bootstrap-theme-3.3.5.min.css">
+    <link rel="stylesheet" href="/css/lib/bootstrap-spinedit-2.2.1.css">
   </head>
 
   <body>
@@ -38,19 +40,16 @@
       </div>
     </nav>
 
-    <!--  All in one page -->
+    <!-- All in one page -->
     <div class="container" data-bind="with: page">
-      <!--  Some text if need -->
+      <!-- Some text if need -->
       <div class="jumbotron">
         <h2 data-bind="text: $root.title"></h2>
         <p data-bind="text: content"></p>
       </div>
 
-      <!--div data-bind="template: { name: 'tst', data: 'message' }"> </div>
-      <script type="text/html" id="tst">
-        <div data-bind="alert: { message: $data, type: 'danger' }"></div>
-      </script-->
-      
+      <!-- Error message -->
+      <div data-bind="visible: errorMessage(), template: { name: 'errorMessage', data: errorMessage }"></div>
 
       <!-- List menu -->
       <p data-bind="with: controls">
@@ -135,9 +134,9 @@
     <div data-bind="modal: {
       visible: action.visible,
       header: { data: { label: action.label } },
-      body: { name: action.bodyTemplate, data: action.fields },
+      body: { name: action.bodyTemplate, data: action.getFields },
       footer: { data: {
-        action: function() { action.action(); },
+        action: action.action,
         closeLabel: 'Отмена',
         primaryLabel: action.buttonLabel
       } }
@@ -145,23 +144,64 @@
       'hidden.bs.modal': function() {
         window.location.href = '/#/' + page.pageName() + '/';
         action.allow(false);
+        action.showed = false;
       }
     }"></div>
     <!-- /ko -->
 
+    <!-- Employee editor -->
     <script type="text/html" id="employees_ModalBodyTemplate">
-      <!--p data-bind="text: 'text'"></p>
+      <!-- ko with: $parents[1].action -->
+      <div data-bind="visible: errorMessage(), template: { name: 'errorMessage', data: errorMessage }"></div>
+      <!-- /ko -->
+
+      <div class="form-group" data-bind="validationElement: lastName">
+        <label class="control-label">Фамилия</label>
+        <input class="form-control" type="text" data-bind="textInput: lastName" />
+      </div>
+      <div class="form-group" data-bind="validationElement: firstName">
+        <label class="control-label">Имя</label>
+        <input class="form-control" type="text" data-bind="textInput: firstName" />
+      </div>
+      <div class="form-group" data-bind="validationElement: middleName">
+        <label class="control-label">Отчество</label>
+        <input class="form-control" type="text" data-bind="textInput: middleName" />
+      </div>
       <div class="form-group">
-        <label data-bind="text: 'label'"></label>
-      </div-->
+        <label class="control-label">Возраст</label>
+        <input class="form-control" type="text" data-bind="textInput: age" id="spinEdit" />
+      </div>
     </script>
+
+<input type="text" id="spinEdit" />
+
+<script type="text/javascript">
+$('#spinEdit').spinedit();
+</script>
 
     <!-- Post editor -->
     <script type="text/html" id="posts_ModalBodyTemplate">
-      <div class="form-group" data-bind="validationOptions: { errorMessageClass: 'help-block' }, css: { 'has-error': !value.isValid() }">
-        <label>Название</label>
-        <input type="text" class="form-control" data-bind="value: value, valueUpdate: 'afterkeydown'" />
+      <!-- ko with: $parents[1].action -->
+      <div data-bind="visible: errorMessage(), template: { name: 'errorMessage', data: errorMessage }"></div>
+      <!-- /ko -->
+
+      <div class="form-group" data-bind="validationElement: value">
+        <label class="control-label">Название</label>
+        <input class="form-control" type="text" data-bind="textInput: value" />
       </div>
+    </script>
+
+    <!-- Error message template -->
+    <script type="text/html" id="errorMessage">
+      <div data-bind="alert: { message: $data, template: 'strongAlertTemplate', type: 'danger' }, event: {
+        'closed.bs.alert': function(){ $parent.errorMessage(null); }
+      }"></div>
+    </script>
+
+    <!-- Alert template -->
+    <script type="text/html" id="strongAlertTemplate">
+      <button class="close" data-dismiss="alert" aria-hidden="true">×</button>
+      <p><strong data-bind="text: message"></strong></p>
     </script>
 
     <script type='text/javascript' src='/js/employee.js'></script>

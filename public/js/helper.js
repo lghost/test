@@ -28,3 +28,10 @@ ko.observableArray.fn.getById = function(id) {
     return element.id == id;
   })[0];
 };
+
+// Knockout Validation default parameters (bootstrap visualization)
+ko.validation.init({
+  errorElementClass: 'has-error',
+  errorMessageClass: 'help-block',
+  decorateInputElement: true
+});
