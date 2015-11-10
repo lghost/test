@@ -21,3 +21,10 @@ ko.observableArray.fn.sortByRowText = function() {
     });
   }
 };
+
+// Returns element by id
+ko.observableArray.fn.getById = function(id) {
+  return this().filter(function(element) {
+    return element.id == id;
+  })[0];
+};
