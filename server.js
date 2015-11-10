@@ -1,20 +1,21 @@
-var config    = require('./app/config');
-var models    = require('./app/models/');
-var routes    = require('./app/routes/');
+var config     = require('./app/config');
+var models     = require('./app/models/');
+var routes     = require('./app/routes/');
 
-var express   = require('express');
-var path      = require('path');
-var Sequelize = require('sequelize');
+var express    = require('express');
+var bodyParser = require('body-parser')
+var path       = require('path');
+var Sequelize  = require('sequelize');
 
-var app       = express();
-var sequelize = new Sequelize(config.db.database, config.db.username, config.db.password, {
+var app        = express();
+var sequelize  = new Sequelize(config.db.database, config.db.username, config.db.password, {
   host: config.db.host,
   dialect: config.db.dialect
 });
 
 // Adding middleware that enables static files support
 app.use(express.static(path.join(__dirname, 'public')));
-//app.use(express.bodyParser());
+app.use(bodyParser.json());
 
 var db = {};
 

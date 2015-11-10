@@ -36,4 +36,25 @@ router.get('/posts', function (req, res) {
   });
 });
 
+// Request to add new post
+router.post('/posts/add', function (req, res) {
+  //req.db.post.all({ where:  })
+  //res.json({ err: JSON.stringify(req.body) });
+  res.json({ id: 3 });
+});
+
+// Request to edit post
+router.post('/posts/edit/:id', function (req, res) {
+  //req.db.post.all({ where:  })
+  //res.json({ err: JSON.stringify(req.body) });
+  res.json({});
+});
+
+// Request to remove post
+router.get('/posts/remove/:id', function (req, res) {
+  //req.db.post.all({ where:  })
+  //res.json({ err: JSON.stringify(req.body) });
+  res.json({ err: 'In use!' });
+});
+
 module.exports = router;
