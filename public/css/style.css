@@ -14,3 +14,7 @@ body {
   float: right;
   width: 20px;
 }
+
+.spinner.input-group .input-group-addon a.spin-up, .spinner.input-group .input-group-addon a.spin-down {
+  font-size: 10px;
+}
