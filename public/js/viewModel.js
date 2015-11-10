@@ -95,6 +95,10 @@ ko.applyBindings(new function () {
       actionLabel: 'сотрудника',
       // List control functions
       controls: {
+        // Function calls when add/edit action init
+        init: function() {
+          self.pages.posts.controls.update();
+        },
         // Update function gets data from server via AJAX
         update: function() {
           $.getJSON('/api/employees', function (response) { // Get array of every employee parameters
@@ -105,14 +109,62 @@ ko.applyBindings(new function () {
           });
         },
         add: function() {
-          //self.action.fields.errors.showAllMessages(true);
-          
+          // Check fields is valid
+          if (self.action.fields.isValid()) {
+            // $.post() doesn't support header specifying, so we use pure $.ajax()
+            if (self.action.fields().postId()) {
+              $.ajax({
+                type: 'POST',
+                url: '/api/employees/add',
+                contentType: "application/json",
+                data: ko.toJSON(self.action.fields),
+                /* After sending we get simple object. If it contains err - sorry,
+                 * we cannot add new employee */
+                success: function(response) {
+                  if (response.err) self.action.errorMessage(response.err);
+                  else {
+                    // On success server gives us new employee parameters object
+                    self.lists.employees.push(new Employee(response.newOne));
+                    self.lists.posts.sortByRowText();
+                    self.action.disable();
+                  }
+                },
+                dataType: 'json'
+              });
+            } else self.action.errorMessage("Нет доступных должностей");
+          } else self.action.fields.errors.showAllMessages(true);
         },
         edit: function() {
-
+          if (self.action.fields.isValid()) {
+            if (self.action.fields().postId()) {
+              $.ajax({
+                type: 'POST',
+                url: '/api/employees/edit/' + self.page.selected(),
+                contentType: "application/json",
+                data: ko.toJSON(self.action.fields),
+                success: function(response) {
+                  if (response.err) self.action.errorMessage(response.err);
+                  else {
+                    self.lists.employees.remove(function(element) {
+                      return element.id == self.page.selected();
+                    });
+                    self.lists.employees.push(new Employee(response.newOne));
+                    self.lists.posts.sortByRowText();
+                    self.action.disable();
+                  }
+                },
+                dataType: 'json'
+              });
+            } else self.action.errorMessage("Нет доступных должностей");
+          } else self.action.fields.errors.showAllMessages(true);
         },
         remove: function() {
-
+          $.getJSON('/api/employees/remove/' + self.page.selected(), function(response) {
+            if (response.err) self.page.errorMessage(response.err);
+            else self.employees.posts.remove(function(element) {
+              return element.id == self.page.selected();
+            });
+          });
         }
       },
       // Employee list view model
@@ -148,7 +200,6 @@ ko.applyBindings(new function () {
         },
         add: function() {
           if (self.action.fields.isValid()) {
-            // $.post() doesn't support header specifying, so we use pure $.ajax()
             $.ajax({
               type: 'POST',
               url: '/api/posts/add',
@@ -198,13 +249,11 @@ ko.applyBindings(new function () {
           } else self.action.fields.errors.showAllMessages(true);
         },
         remove: function() {
-          $.get('/api/posts/remove/' + self.page.selected(), function(response) {
+          $.getJSON('/api/posts/remove/' + self.page.selected(), function(response) {
             if (response.err) self.page.errorMessage(response.err);
-            else {
-              self.lists.posts.remove(function(element) {
-                return element.id == self.page.selected();
-              });
-            }
+            else self.lists.posts.remove(function(element) {
+              return element.id == self.page.selected();
+            });
           });
         }
       },
@@ -230,6 +279,7 @@ ko.applyBindings(new function () {
       init: function() {
         for (var field in self.action.fields())
           self.action.fields()[field](null);
+        if (self.page.controls().init) self.page.controls().init();
       }
     },
     'edit': {
@@ -242,6 +292,7 @@ ko.applyBindings(new function () {
         if (item)
           for (var field in self.action.fields())
             self.action.fields()[field](item[field]);
+        if (self.page.controls().init) self.page.controls().init();
       }
     }
   };

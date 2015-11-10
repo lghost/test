@@ -169,13 +169,20 @@
       </div>
       <div class="form-group">
         <label class="control-label">Возраст</label>
-        <div class="input-group spinner">
-          <input class="form-control" type="text" data-max="100" data-min="0" data-step="1" data-bind="textInput: age, jqSpinner: true">
+        <div class="input-group spinner col-xs-2">
+          <input class="form-control" type="text" data-max="100" data-min="0" data-step="1" data-bind="jqSpinner: age">
           <div class="input-group-addon">
             <a href="javascript:;" class="spin-up" data-spin="up"><i class="glyphicon glyphicon-chevron-up"></i></a>
             <a href="javascript:;" class="spin-down" data-spin="down"><i class="glyphicon glyphicon-chevron-down"></i></a>
           </div>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="control-label">Должность</label>
+        <select class="form-control" data-bind="options: $parents[1].lists.posts(),
+                                                optionsText: 'value',
+                                                optionsValue: 'id',
+                                                value: postId"></select>
       </div>
     </script>
 
