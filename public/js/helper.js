@@ -35,3 +35,10 @@ ko.validation.init({
   errorMessageClass: 'help-block',
   decorateInputElement: true
 });
+
+// Simple jQuery spinner initializer
+ko.bindingHandlers.jqSpinner = {
+  init: function(element) {
+    $(element).parent().spinner();
+  }
+};
