@@ -95,9 +95,24 @@ ko.applyBindings(new function () {
       actionLabel: 'сотрудника',
       // List control functions
       controls: {
-        // Function calls when add/edit action init
-        init: function() {
+        // Function calls when add action inits
+        addInit: function() {
+          // If we want to add/edit employees without post loaded, we need update last one first
           self.pages.posts.controls.update();
+        },
+        // Function calls when edit action inits
+        editInit: function() {
+          /* When posts updates, post of edited employee will not display correctly (due to async ajax request).
+           * We need to reselect it here. I'm lazy to create new single-shot subscription...
+           * So, I just rewrite update function on my rules.
+           * And yes, I'll be better to write callback support... But not now */
+          //self.pages.posts.controls.update();
+          $.getJSON('/api/posts', function(data) {
+            self.lists.posts(data);
+            self.lists.posts.sortByRowText();
+            // Reselect
+            self.action.fields().postId(self.lists.employees.getById(self.page.selected()).postId);
+          });
         },
         // Update function gets data from server via AJAX
         update: function() {
@@ -279,7 +294,7 @@ ko.applyBindings(new function () {
       init: function() {
         for (var field in self.action.fields())
           self.action.fields()[field](null);
-        if (self.page.controls().init) self.page.controls().init();
+        if (self.page.controls().addInit) self.page.controls().addInit();
       }
     },
     'edit': {
@@ -292,7 +307,7 @@ ko.applyBindings(new function () {
         if (item)
           for (var field in self.action.fields())
             self.action.fields()[field](item[field]);
-        if (self.page.controls().init) self.page.controls().init();
+        if (self.page.controls().editInit) self.page.controls().editInit();
       }
     }
   };
