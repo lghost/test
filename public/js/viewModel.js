@@ -98,18 +98,14 @@ ko.applyBindings(new function () {
         // Function calls when add action inits
         addInit: function() {
           // If we want to add/edit employees without post loaded, we need update last one first
-          self.pages.posts.controls.update();
+          $.getJSON('/api/posts', self.lists.posts);
         },
         // Function calls when edit action inits
         editInit: function() {
           /* When posts updates, post of edited employee will not display correctly (due to async ajax request).
-           * We need to reselect it here. I'm lazy to create new single-shot subscription...
-           * So, I just rewrite update function on my rules.
-           * And yes, I'll be better to write callback support... But not now */
-          //self.pages.posts.controls.update();
+           * We need to reselect it here. */
           $.getJSON('/api/posts', function(data) {
             self.lists.posts(data);
-            self.lists.posts.sortByRowText();
             // Reselect
             self.action.fields().postId(self.lists.employees.getById(self.page.selected()).postId);
           });
@@ -140,7 +136,7 @@ ko.applyBindings(new function () {
                   else {
                     // On success server gives us new employee parameters object
                     self.lists.employees.push(new Employee(response.newOne));
-                    self.lists.posts.sortByRowText();
+                    self.lists.employees.sortByRowText();
                     self.action.disable();
                   }
                 },
@@ -164,7 +160,7 @@ ko.applyBindings(new function () {
                       return element.id == self.page.selected();
                     });
                     self.lists.employees.push(new Employee(response.newOne));
-                    self.lists.posts.sortByRowText();
+                    self.lists.employees.sortByRowText();
                     self.action.disable();
                   }
                 },
@@ -174,11 +170,15 @@ ko.applyBindings(new function () {
           } else self.action.fields.errors.showAllMessages(true);
         },
         remove: function() {
+          self.page.errorMessage(null);
           $.getJSON('/api/employees/remove/' + self.page.selected(), function(response) {
             if (response.err) self.page.errorMessage(response.err);
-            else self.employees.posts.remove(function(element) {
-              return element.id == self.page.selected();
-            });
+            else {
+              self.lists.employees.remove(function(element) {
+                return element.id == self.page.selected();
+              });
+              self.page.selected(null);
+            }
           });
         }
       },
@@ -264,11 +264,15 @@ ko.applyBindings(new function () {
           } else self.action.fields.errors.showAllMessages(true);
         },
         remove: function() {
+          self.page.errorMessage(null);
           $.getJSON('/api/posts/remove/' + self.page.selected(), function(response) {
             if (response.err) self.page.errorMessage(response.err);
-            else self.lists.posts.remove(function(element) {
-              return element.id == self.page.selected();
-            });
+            else {
+              self.lists.posts.remove(function(element) {
+                return element.id == self.page.selected();
+              });
+              self.page.selected(null);
+            }
           });
         }
       },
@@ -286,6 +290,7 @@ ko.applyBindings(new function () {
     }
   };
 
+  // Action parameters
   self.actions = {
     'add': {
       label: 'Добавить',

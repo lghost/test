@@ -42,7 +42,7 @@ ko.bindingHandlers.jqSpinner = {
     var value = valueAccessor();
     if (!ko.isObservable(value)) return;
 
-    if (typeof value() != 'Number') value(0);
+    if (!value()) value(0);
     $(element).val(value());
     $(element).parent().spinner('changing', function(e, newVal, oldVal) {
       value(newVal);
