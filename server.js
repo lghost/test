@@ -10,7 +10,10 @@ var Sequelize  = require('sequelize');
 var app        = express();
 var sequelize  = new Sequelize(config.db.database, config.db.username, config.db.password, {
   host: config.db.host,
-  dialect: config.db.dialect
+  dialect: config.db.dialect,
+  dialectOptions: {
+    charset: 'utf8'
+  }
 });
 
 // Adding middleware that enables static files support
@@ -39,9 +42,17 @@ sequelize.sync({ force: true }).then(function () {
   db.employee.findOrCreate({ where: { firstName: 'Bar' }, defaults: {
     lastName: 'Bar',
     middleName: 'Bar',
-    age: 22,
+    age: 33,
     post: {
       value: 'Victim'
+    }
+  }, include: [ db.post ] });
+  db.employee.findOrCreate({ where: { firstName: 'Виталий' }, defaults: {
+    lastName: 'Васин',
+    middleName: 'Николаевич',
+    age: 22,
+    post: {
+      value: 'Инженер'
     }
   }, include: [ db.post ] });
 });
