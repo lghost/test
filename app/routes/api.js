@@ -32,32 +32,30 @@ router.get('/employees', function (req, res) {
 // Request to add new employee
 router.post('/employees/add', function (req, res) {
   // Check the required postId exists
-  req.db.post.findOne({ where: { id: req.body.postId } }).then(function(post) {
-    if (!post) return res.json('Должность не существует на сервере');
+  req.db.post.findById(req.body.postId).then(function(post) {
+    if (!post) return res.json({err:'Должность не существует на сервере'});
     // Ok, let's create
-    req.db.employee.create({
-      firstName:  req.body.firstName,
-      lastName:   req.body.lastName,
+    req.db.employee.findOrCreate({ where: {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
       middleName: req.body.middleName,
-      age:        req.body.age,
-      postId:     req.body.postId
-    }).spread(function(employee, created) {
-      if (!created) return res.json('Не удалось создать');
-      req.db.employee.findOne({ where: { id: employee.id }, attributes: [
-        'id',
-        'firstName',
-        'lastName',
-        'middleName',
-        'age',
-        'postId'
-      ], include: [ {
-        model: req.db.post,
-        attributes: [ 'value' ]
-      } ] }).then(function(employee) {
-        res.json(employee);
-      });
-    })
-  })
+      age: req.body.age,
+      postId: req.body.postId
+    }, include: [ req.db.post ] }).spread(function(employee, created) {
+      if (!created) return res.json({err:'Не удалось создать'});
+      res.json({ newOne: {
+        id: employee.id,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        middleName: employee.middleName,
+        age: employee.age,
+        postId: employee.postId,
+        post: {
+          value: post.value
+        }
+      } });
+    });
+  });
 });
 
 // Request to edit employee
