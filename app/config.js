@@ -1,10 +1,10 @@
 module.exports = {
-  port: process.argv[2] || 4000,
+  port: process.argv[2] || 3000,
   host: 'localhost',
   db: {
     dialect:  "mysql",
     host:     "localhost",
-    database: "another_test_db",
+    database: "test_db",
     username: "test",
     password: "qwerty"
   }
